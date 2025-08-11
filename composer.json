@@ -1,0 +1,22 @@
+{
+    "name": "tigron/skeleton-lock",
+    "description": "Atomic locking for skeleton",
+    "type": "library",
+    "require": {
+		"php": ">=8.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tigron bv",
+            "email": "support@tigron.be"
+        }
+    ],
+    "support": {
+        "source": "https://github.com/tigron/skeleton-lock",
+        "issues": "https://github.com/tigron/skeleton-lock/issues"
+    },
+    "autoload": {
+        "psr-4": { "Skeleton\\Lock\\": "lib/Skeleton/Lock/" }
+    }
+}
