@@ -40,7 +40,9 @@ class Memcached extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function get_lock(string $name, int|bool|null $expiration = false): void {
+	public static function get_lock(string $name, int|bool|null $expiration = false, bool $retried = false): void {
+		$name = 'lock.' . $name;
+
 		$mc = self::get_instance();
 
 		if ($expiration === false) {
@@ -52,7 +54,13 @@ class Memcached extends \Skeleton\Lock\Handler {
 		}
 
 		if ($mc->add($name, 1, $expiration) === false) {
-			throw new \Skeleton\Lock\Exception\Failed();
+			// memcached will disconnect after being idle, add one retry
+			if ($mc->getResultCode() === 26 && $retried === false) {
+				self::get_lock($name, $expiration, true);
+				return;
+			}
+
+			throw new \Skeleton\Lock\Exception\Failed('could not get lock: memcached: error code ' . $mc->getResultCode() . ': ' . $mc->getResultMessage());
 		}
 	}
 
@@ -82,6 +90,8 @@ class Memcached extends \Skeleton\Lock\Handler {
 	 * @access public
 	 */
 	public static function release_lock(string $name): void {
+		$name = 'lock.' . $name;
+
 		$mc = self::get_instance();
 		$mc->delete($name);
 	}

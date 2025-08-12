@@ -39,6 +39,8 @@ class Memcache extends \Skeleton\Lock\Handler {
 	 * @access public
 	 */
 	public static function get_lock(string $name, int|bool|null $expiration = false): void {
+		$name = 'lock.' . $name;
+
 		$mc = self::get_instance();
 
 		if ($expiration === false) {
@@ -49,7 +51,7 @@ class Memcache extends \Skeleton\Lock\Handler {
 			$expiration = 0;
 		}
 
-		if ($mc->add('lock.' . $name, 1, false, \Skeleton\Lock\Config::$expiration) === false) {
+		if ($mc->add($name, 1, false, \Skeleton\Lock\Config::$expiration) === false) {
 			throw new \Skeleton\Lock\Exception\Failed();
 		}
 	}
@@ -80,7 +82,9 @@ class Memcache extends \Skeleton\Lock\Handler {
 	 * @access public
 	 */
 	public static function release_lock(string $name): void {
+		$name = 'lock.' . $name;
+
 		$mc = self::get_instance();
-		$mc->delete('lock.' . $name);
+		$mc->delete($name);
 	}
 }
