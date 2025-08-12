@@ -40,7 +40,7 @@ class Memcached extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function get_lock(string $name, $expiration = false): void {
+	public static function get_lock(string $name, int|bool|null $expiration = false): void {
 		$mc = self::get_instance();
 
 		if ($expiration === false) {
@@ -54,6 +54,26 @@ class Memcached extends \Skeleton\Lock\Handler {
 		if ($mc->add($name, 1, $expiration) === false) {
 			throw new \Skeleton\Lock\Exception\Failed();
 		}
+	}
+
+	/**
+	 * Wait until a lock is acquired
+	 *
+	 * @access public
+	 */
+	public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void {
+		$start = microtime(true);
+
+		while ((microtime(true) - $start) < $wait) {
+			try {
+				self::get_lock($name, $expiration, $wait);
+				return;
+			} catch (\Skeleton\Lock\Exception\Failed $e) {}
+
+			usleep(100000);
+		}
+
+		throw new \Skeleton\Lock\Exception\Failed();
 	}
 
 	/**

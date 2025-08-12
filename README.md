@@ -34,23 +34,28 @@ Of course, each mechanism requires the supporting skeleton package to
 be installed as well, and requires the settings for that specific
 mechanism to be defined.
 
-### database
-
-No additional configuration required.
-
-### memcache / memcached
-
-These handlers both need a hostname and port:
-
-    \Skeleton\Lock\Config::$locking_handler_config = [
-    	'hostname' => '127.0.0.1',
-    	'port' => 11211,
+    \Skeleton\Object\Config::$cache_handler_config = [
+    	'hostname' => '127.0.0.1', // memcache/memcached
+    	'port' => '12211', // memcache/memcached
+    	'dsn' => 'mysqli://user@database/table', // database
+    	'path' => '/path/', // file
+    	'expire' => 10, // not supported for database
     ];
 
-### file
+Note that not all mechanisms support all features. For example,
+database locks can not expire.
 
-The file handler needs a path to a lockfile:
+## Usage
 
-    \Skeleton\Lock\Config::$locking_handler_config = [
-    	'path' => '/path/to/lockfile/directory',
-    ];
+Get the current handler, and wait for 5 seconds to acquire `mylock`:
+
+    \Skeleton\Lock\Handler::get()::wait_lock('mylock', wait: 5);
+
+Get the current handler, get `mylock` immediately and deal with
+potential failure:
+
+    try {
+    	\Skeleton\Lock\Handler::get()::wait_lock('mylock', wait: 5);
+    } catch (\Skeleton\Lock\Exception\Failed $e) {
+    	echo 'Could not get the lock';
+    }

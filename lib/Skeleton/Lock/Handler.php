@@ -17,7 +17,14 @@ abstract class Handler {
 	 *
 	 * @access public
 	 */
-	abstract public static function get_lock(string $name): void;
+	abstract public static function get_lock(string $name, int|bool|null $expiration = false): void;
+
+	/**
+	 * Wait until a lock is acquired
+	 *
+	 * @access public
+	 */
+	abstract public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void;
 
 	/**
 	 * Release lock

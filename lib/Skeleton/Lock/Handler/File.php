@@ -18,7 +18,7 @@ class File extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function get_lock(string $name, $expiration = false): void {
+	public static function get_lock(string $name, int|bool|null $expiration = false): void {
 		$filename = self::get_filepath($name);
 
 		$handle = @fopen($filename, 'x');
@@ -40,6 +40,26 @@ class File extends \Skeleton\Lock\Handler {
 		}
 
 		fclose($handle);		
+	}
+
+	/**
+	 * Wait until a lock is acquired
+	 *
+	 * @access public
+	 */
+	public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void {
+		$start = microtime(true);
+
+		while ((microtime(true) - $start) < $wait) {
+			try {
+				self::get_lock($name, $expiration, $wait);
+				return;
+			} catch (\Skeleton\Lock\Exception\Failed $e) {}
+
+			usleep(100000);
+		}
+
+		throw new \Skeleton\Lock\Exception\Failed('can not get lock: lockfile exists');
 	}
 
 	/**

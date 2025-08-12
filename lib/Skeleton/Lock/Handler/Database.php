@@ -18,18 +18,31 @@ class Database extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function get_lock(string $name, $expiration = false): void {
-		if ($expiration === false) {
-			// default expiration
-			$expiration = \Skeleton\Lock\Config::$expiration;
-		} elseif (empty($expiration)) {
-			// disable expiration
-			$expiration = 0;
+	public static function get_lock(string $name, int|bool|null $expiration = false, float $wait = 0.001): void {
+		if ($expiration !== false) {
+			throw new \Skeleton\Lock\Exception\Unsupported('expiration is not supported with this handler');
 		}
 
-		$db = \Skeleton\Database\Database::get();
-		//$db->get_lock($name, $expiration); // this is not yet supported
-		$db->get_lock($name);
+		if (!empty(\Skeleton\Lock\Config::$handler_config['dsn'])) {
+			$db = \Skeleton\Database\Database::get(\Skeleton\Lock\Config::$handler_config['dsn']);
+		} else {
+			$db = \Skeleton\Database\Database::get();
+		}
+
+		try {
+			$db->get_lock($name, $wait);
+		} catch (\Exception $e) {
+			throw new \Skeleton\Lock\Exception\Failed('failed to get database lock');
+		}
+	}
+
+	/**
+	 * Wait until a lock is acquired
+	 *
+	 * @access public
+	 */
+	public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void {
+		self::get_lock($name, $expiration, $wait);
 	}
 
 	/**
