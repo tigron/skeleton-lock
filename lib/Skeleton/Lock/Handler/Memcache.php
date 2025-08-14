@@ -38,7 +38,7 @@ class Memcache extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function get_lock(string $name, int|bool|null $expiration = false): void {
+	public static function obtain(string $name, int|bool|null $expiration = false): void {
 		$name = 'lock.' . $name;
 
 		$mc = self::get_instance();
@@ -61,12 +61,12 @@ class Memcache extends \Skeleton\Lock\Handler {
 	 *
 	 * @access public
 	 */
-	public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void {
+	public static function wait(string $name, int|bool|null $expiration = false, float $wait = 10): void {
 		$start = microtime(true);
 
 		while ((microtime(true) - $start) < $wait) {
 			try {
-				self::get_lock($name, $expiration, $wait);
+				self::obtain($name, $expiration, $wait);
 				return;
 			} catch (\Skeleton\Lock\Exception\Failed $e) {}
 
@@ -81,7 +81,7 @@ class Memcache extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function release_lock(string $name): void {
+	public static function release(string $name): void {
 		$name = 'lock.' . $name;
 
 		$mc = self::get_instance();

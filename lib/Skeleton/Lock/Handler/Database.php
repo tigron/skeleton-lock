@@ -18,7 +18,7 @@ class Database extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function get_lock(string $name, int|bool|null $expiration = false, float $wait = 0.001): void {
+	public static function obtain(string $name, int|bool|null $expiration = false, float $wait = 0.001): void {
 		if ($expiration !== false) {
 			throw new \Skeleton\Lock\Exception\Unsupported('expiration is not supported with this handler');
 		}
@@ -41,8 +41,8 @@ class Database extends \Skeleton\Lock\Handler {
 	 *
 	 * @access public
 	 */
-	public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void {
-		self::get_lock($name, $expiration, $wait);
+	public static function wait(string $name, int|bool|null $expiration = false, float $wait = 10): void {
+		self::obtain($name, $expiration, $wait);
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Database extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function release_lock(string $name): void {
+	public static function release(string $name): void {
 		$db = \Skeleton\Database\Database::get();
 		$db->release_lock($name);
 	}

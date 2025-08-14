@@ -47,15 +47,28 @@ database locks can not expire.
 
 ## Usage
 
+For getting a lock, you can either call `obtain()` or `wait()`, where
+the former will fail immediately if it can not get a lock, and the
+latter will retry until the specified timeout expired.
+
+Releasing a lock is done with `release()`.
+
+### Examples
+
 Get the current handler, and wait for 5 seconds to acquire `mylock`:
 
-    \Skeleton\Lock\Handler::get()::wait_lock('mylock', wait: 5);
+    \Skeleton\Lock\Handler::get()::wait('mylock', wait: 5);
 
 Get the current handler, get `mylock` immediately and deal with
 potential failure:
 
     try {
-    	\Skeleton\Lock\Handler::get()::wait_lock('mylock', wait: 5);
+    	$lock = \Skeleton\Lock\Handler::get();
+    	$lock::obtain('mylock');
     } catch (\Skeleton\Lock\Exception\Failed $e) {
     	echo 'Could not get the lock';
     }
+
+Releasing the lock we got earlier:
+
+    $lock::release('mylock');

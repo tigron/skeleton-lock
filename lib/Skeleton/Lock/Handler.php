@@ -17,21 +17,21 @@ abstract class Handler {
 	 *
 	 * @access public
 	 */
-	abstract public static function get_lock(string $name, int|bool|null $expiration = false): void;
+	abstract public static function obtain(string $name, int|bool|null $expiration = false): void;
 
 	/**
 	 * Wait until a lock is acquired
 	 *
 	 * @access public
 	 */
-	abstract public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void;
+	abstract public static function wait(string $name, int|bool|null $expiration = false, float $wait = 10): void;
 
 	/**
 	 * Release lock
 	 *
 	 * @access public
 	 */
-	abstract public static function release_lock(string $name): void;
+	abstract public static function release(string $name): void;
 
 	/**
 	 * Get class

@@ -40,7 +40,7 @@ class Memcached extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function get_lock(string $name, int|bool|null $expiration = false, bool $retried = false): void {
+	public static function obtain(string $name, int|bool|null $expiration = false, bool $retried = false): void {
 		$name = 'lock.' . $name;
 
 		$mc = self::get_instance();
@@ -56,7 +56,7 @@ class Memcached extends \Skeleton\Lock\Handler {
 		if ($mc->add($name, 1, $expiration) === false) {
 			// memcached will disconnect after being idle, add one retry
 			if ($mc->getResultCode() === 26 && $retried === false) {
-				self::get_lock($name, $expiration, true);
+				self::obtain($name, $expiration, true);
 				return;
 			}
 
@@ -69,12 +69,12 @@ class Memcached extends \Skeleton\Lock\Handler {
 	 *
 	 * @access public
 	 */
-	public static function wait_lock(string $name, int|bool|null $expiration = false, float $wait = 10): void {
+	public static function wait(string $name, int|bool|null $expiration = false, float $wait = 10): void {
 		$start = microtime(true);
 
 		while ((microtime(true) - $start) < $wait) {
 			try {
-				self::get_lock($name, $expiration, $wait);
+				self::obtain($name, $expiration);
 				return;
 			} catch (\Skeleton\Lock\Exception\Failed $e) {}
 
@@ -89,10 +89,22 @@ class Memcached extends \Skeleton\Lock\Handler {
 	 * 
 	 * @access public
 	 */
-	public static function release_lock(string $name): void {
+	public static function release(string $name, bool $retried = false): void {
 		$name = 'lock.' . $name;
 
 		$mc = self::get_instance();
-		$mc->delete($name);
+
+		if ($mc->delete($name) === false) {
+			if ($mc->getResultCode() === 26 && $retried === false) {
+				// memcached will disconnect after being idle, add one retry
+				self::release($name, $expiration, true);
+				return;
+			} elseif ($mc->getResultCode() === 16) {
+				// ignore if the key isn't found (probably expired)
+				return;
+			}
+
+			throw new \Skeleton\Lock\Exception\Failed('could not release lock: memcached: error code ' . $mc->getResultCode() . ': ' . $mc->getResultMessage());
+		}
 	}
 }
